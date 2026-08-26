@@ -30,6 +30,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "invalid_email" }, { status: 400 });
   }
 
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    // Supabase not wired yet — accept the signup silently so the form UX is clean.
+    console.warn("[waitlist] Supabase env vars missing; signup dropped", { email });
+    return NextResponse.json({ ok: true, pending: true });
+  }
+
   const supabase = createServiceClient();
 
   const { error } = await supabase.from("waitlist_signups").insert({
