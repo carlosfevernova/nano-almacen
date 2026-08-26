@@ -116,7 +116,7 @@ export async function parseOrder(input: ParseOrderInput): Promise<ParsedOrder> {
     : `Mensaje del cliente:\n"${input.message}"`;
 
   const response = await ai.models.generateContent({
-    model: "gemini-flash-latest",
+    model: "gemini-3.5-flash-lite",
     contents: userContent,
     config: {
       systemInstruction: SYSTEM_PROMPT,
