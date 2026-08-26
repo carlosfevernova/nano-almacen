@@ -41,3 +41,6 @@ yarn-error.log*
 next-env.d.ts
 
 .vercel
+
+# protect-mcp local audit receipts (Ed25519-signed tool call trail, machine-local)
+/receipts/
