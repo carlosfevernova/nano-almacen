@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 import { z } from "zod";
 
 // Structured output schema — the model fills exactly this shape.
@@ -27,36 +27,17 @@ export const ParsedOrderSchema = z.object({
 
 export type ParsedOrder = z.infer<typeof ParsedOrderSchema>;
 
-// Google Gemini JSON schema (mirrors Zod above)
-const RESPONSE_SCHEMA = {
-  type: Type.OBJECT,
-  required: ["intent", "confidence", "items", "reply_suggestion", "language", "notes"],
-  properties: {
-    intent: {
-      type: Type.STRING,
-      enum: ["order", "question", "complaint", "greeting", "cancel", "other"],
-    },
-    confidence: { type: Type.NUMBER },
-    items: {
-      type: Type.ARRAY,
-      items: {
-        type: Type.OBJECT,
-        required: ["query", "quantity", "unit", "notes"],
-        properties: {
-          query: { type: Type.STRING },
-          quantity: { type: Type.NUMBER },
-          unit: { type: Type.STRING, nullable: true },
-          notes: { type: Type.STRING, nullable: true },
-        },
-      },
-    },
-    reply_suggestion: { type: Type.STRING },
-    language: { type: Type.STRING, enum: ["es-MX", "es", "en", "other"] },
-    notes: { type: Type.STRING, nullable: true },
-  },
-};
-
 const SYSTEM_PROMPT = `Eres el motor de pedidos de Nano-Almacén, un sistema para tienditas y abarrotes en México que reciben pedidos por WhatsApp.
+
+FORMATO DE RESPUESTA: SIEMPRE devuelve un JSON válido con EXACTAMENTE esta estructura, nada más:
+{
+  "intent": "order" | "question" | "complaint" | "greeting" | "cancel" | "other",
+  "confidence": 0.0-1.0,
+  "items": [{ "query": string, "quantity": number, "unit": string|null, "notes": string|null }],
+  "reply_suggestion": string (máx 160 chars),
+  "language": "es-MX" | "es" | "en" | "other",
+  "notes": string|null
+}
 
 Tu única tarea: leer el mensaje del cliente y devolver una estructura de pedido normalizada.
 
@@ -135,13 +116,11 @@ export async function parseOrder(input: ParseOrderInput): Promise<ParsedOrder> {
     : `Mensaje del cliente:\n"${input.message}"`;
 
   const response = await ai.models.generateContent({
-    model: "gemini-3.6-flash",
+    model: "gemini-flash-latest",
     contents: userContent,
     config: {
       systemInstruction: SYSTEM_PROMPT,
       responseMimeType: "application/json",
-      responseSchema: RESPONSE_SCHEMA,
-      thinkingConfig: { thinkingBudget: 0 },
       temperature: 0.2,
       maxOutputTokens: 1024,
     },
