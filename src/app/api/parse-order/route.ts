@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { parseOrder } from "@/lib/claude/parse-order";
-import { isClaudeConfigured } from "@/lib/claude/client";
+import { parseOrder, isAiConfigured } from "@/lib/claude/parse-order";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,9 +12,9 @@ interface ParsePayload {
 }
 
 export async function POST(request: Request) {
-  if (!isClaudeConfigured()) {
+  if (!isAiConfigured()) {
     return NextResponse.json(
-      { error: "claude_not_configured", hint: "Set ANTHROPIC_API_KEY in Vercel env vars" },
+      { error: "ai_not_configured", hint: "Set GOOGLE_GENAI_API_KEY in Vercel env vars" },
       { status: 503 }
     );
   }
